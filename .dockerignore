@@ -1,0 +1,6 @@
+# .dockerignore (frontend)
+node_modules
+dist
+*.log
+.git
+.DS_Store
