@@ -60,7 +60,7 @@ const StreamingVideoPage = () => {
 
   useEffect(() => {
     // Connect to the WebSocket server
-    const socket = new WebSocket('ws://192.168.1.4:3001');
+    const socket = new WebSocket('ws://localhost:3001');
 
     // Handle successful connection
     socket.onopen = () => {
