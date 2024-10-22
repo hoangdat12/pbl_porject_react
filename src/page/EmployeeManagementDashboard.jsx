@@ -1,21 +1,39 @@
 import React, { useEffect, useState } from 'react';
-import {
-  FaSearch,
-  FaFileExport,
-  FaFilePdf,
-  FaEdit,
-  FaTrash,
-} from 'react-icons/fa';
+import { FaSearch, FaFileExport, FaFilePdf } from 'react-icons/fa';
 import MainLayout from '../components/MainLayout';
 import axiosInstance from '../ultils/axios/axiosInstance';
+import Loading from '../components/Loading';
+import { getUserLocalStorageItem } from '../ultils';
+import useDebounce from '../hooks/useDebounce';
+import EmployeeList from '../components/EmployeeList';
 
 const EmployeeManagementDashboard = () => {
+  const user = getUserLocalStorageItem();
   const [employees, setEmployees] = useState([]);
-
+  const [employeeFilter, setEmployeeFilter] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedDepartment, setSelectedDepartment] = useState('');
+
+  const debounceSearchItem = useDebounce(searchTerm, 500);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
+  };
+
+  const handleSelectChange = (event) => {
+    const departmentValue = event.target.value;
+
+    if (departmentValue === '') {
+      setEmployeeFilter([]);
+    }
+
+    setSelectedDepartment(departmentValue);
+    setIsLoading(true);
+    setEmployeeFilter(
+      employees.filter((emp) => emp?.deparment === departmentValue)
+    );
+    setIsLoading(false);
   };
 
   const handleExportPDF = () => {
@@ -30,7 +48,11 @@ const EmployeeManagementDashboard = () => {
 
   useEffect(() => {
     const getEmployees = async () => {
-      const response = await axiosInstance.get('device/employee/BC5BPV21X0');
+      setIsLoading(true);
+      const response = await axiosInstance.get(
+        `device/employee/${user?.device_id}`
+      );
+      setIsLoading(false);
       if (response.status === 200) {
         setEmployees(response?.data?.data);
       }
@@ -38,6 +60,19 @@ const EmployeeManagementDashboard = () => {
 
     getEmployees();
   }, []);
+
+  useEffect(() => {
+    if (debounceSearchItem) {
+      const filtered = employees.filter((employee) =>
+        `${employee.first_name} ${employee.last_name}`
+          .toLowerCase()
+          .includes(debounceSearchItem.toLowerCase())
+      );
+      setEmployeeFilter(filtered);
+    } else {
+      setEmployeeFilter(employees); // Show all if search term is empty
+    }
+  }, [debounceSearchItem, employees]);
 
   return (
     <MainLayout>
@@ -58,11 +93,15 @@ const EmployeeManagementDashboard = () => {
             <FaSearch className='absolute left-3 top-3 text-gray-400' />
           </div>
 
-          <select className='w-full md:w-1/4 px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500'>
+          <select
+            className='w-full md:w-1/4 px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500'
+            value={selectedDepartment} // Bind the selected value to the state
+            onChange={handleSelectChange} // Handle value change
+          >
             <option value=''>All Departments</option>
-            <option value='IT'>IT</option>
-            <option value='Management'>Management</option>
-            <option value='Analytics'>Analytics</option>
+            <option value='Human Resource'>Human Resource</option>
+            <option value='Development Team'>Development Team</option>
+            <option value='Test Team'>Test Team</option>
           </select>
 
           <div className='w-full md:w-auto mt-4 md:mt-0 flex space-x-4'>
@@ -84,35 +123,19 @@ const EmployeeManagementDashboard = () => {
         </div>
 
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-          {employees.map((employee) => (
-            <div
-              key={employee.id}
-              className='bg-white rounded-lg shadow-md overflow-hidden'
-            >
-              <img
-                src={employee?.image}
-                alt={employee?.id}
-                className='w-full h-48 object-cover'
-              />
-              <div className='p-4'>
-                <h2 className='text-xl font-semibold mb-2'>
-                  {employee?.first_name + ' ' + employee?.last_name}
-                </h2>
-                <p className='text-gray-600 mb-2'>{employee?.position}</p>
-                <p className='text-gray-500 mb-4'>{employee?.deparment}</p>
-                <div className='flex justify-between'>
-                  <button className='flex items-center px-3 py-1 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition duration-300'>
-                    <FaEdit className='mr-1' />
-                    Edit
-                  </button>
-                  <button className='flex items-center px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-300'>
-                    <FaTrash className='mr-1' />
-                    Delete
-                  </button>
-                </div>
-              </div>
+          {isLoading ? (
+            <div className='flex items-center justify-center '>
+              <Loading isLoading={isLoading} />
             </div>
-          ))}
+          ) : (
+            <EmployeeList
+              employees={
+                selectedDepartment === '' && searchTerm === ''
+                  ? employees
+                  : employeeFilter
+              }
+            />
+          )}
         </div>
       </div>
     </MainLayout>

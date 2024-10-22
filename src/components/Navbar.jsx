@@ -13,7 +13,7 @@ const Navbar = () => {
   const menuItems = [
     { name: 'Home', href: '/' },
     { name: 'Employee', href: '/employee/management' },
-    { name: 'Employee Attendence', href: '/employee/attendence' },
+    { name: 'Attendence', href: '/employee/attendence' },
     { name: 'Setting', href: '/setting' },
     { name: 'Device', href: '/device' },
   ];

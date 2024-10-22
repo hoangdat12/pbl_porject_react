@@ -7,6 +7,7 @@ import LoadingOverlay from '../components/LoadingOverlay';
 const Login = () => {
   const navigate = useNavigate();
   const [isLoadingOverlay, setIsLoadingOverlay] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(false);
 
   const [formData, setFormData] = useState({
     password: '',
@@ -23,20 +24,26 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoadingOverlay(true);
-    const response = await axiosInstance.post(
-      '/account/authenticate',
-      formData
-    );
-    setIsLoadingOverlay(false);
-    if (response.status === 200) {
-      const responseData = response.data.data;
-      localStorage.setItem('user', JSON.stringify(responseData.user));
-      localStorage.setItem('token', JSON.stringify(responseData.access));
-      localStorage.setItem(
-        'refreshToken',
-        JSON.stringify(responseData.refresh)
+    try {
+      const response = await axiosInstance.post(
+        '/account/authenticate',
+        formData
       );
-      navigate('/');
+      setIsLoadingOverlay(false);
+      if (response.status === 200) {
+        const responseData = response?.data?.data;
+        localStorage.setItem('user', JSON.stringify(responseData?.user));
+        localStorage.setItem('token', JSON.stringify(responseData?.access));
+        localStorage.setItem(
+          'refreshToken',
+          JSON.stringify(responseData.refresh)
+        );
+        navigate('/');
+      } else {
+        setErrorMessage(true);
+      }
+    } catch (error) {
+      setErrorMessage(true);
     }
   };
 
@@ -48,6 +55,13 @@ const Login = () => {
             LogIn
           </span>
         </h2>
+
+        {errorMessage && (
+          <div className='flex items-center justify-center p-4 rounded bg-[#f5f5f5] mb-6 text-red-500 font-medium'>
+            <h1>Tài khoản hoạt mật khẩu không đúng, vui lòng thử lại!</h1>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className='space-y-3'>
           <Input
             label='Username'

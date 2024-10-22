@@ -66,3 +66,8 @@ export const getTimeFromDate = (timestamp) => {
 
   return formattedTime;
 };
+
+export function capitalizeFirstLetter(string) {
+  if (!string) return ''; // Handle empty string
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}

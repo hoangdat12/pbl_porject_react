@@ -106,11 +106,12 @@ const EmployeeRollCall = () => {
                         onChange={handleFilterChange}
                         className='border rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500'
                       >
-                        <option value='all'>All Departments</option>
-                        <option value='it'>IT</option>
-                        <option value='hr'>HR</option>
-                        <option value='finance'>Finance</option>
-                        <option value='marketing'>Marketing</option>
+                        <option value=''>All Departments</option>
+                        <option value='Human Resource'>Human Resource</option>
+                        <option value='Development Team'>
+                          Development Team
+                        </option>
+                        <option value='Test Team'>Test Team</option>
                       </select>
                     </div>
                     <div className='flex items-center'>
@@ -124,7 +125,6 @@ const EmployeeRollCall = () => {
                         className='border rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500'
                       >
                         <option value='name'>Name</option>
-                        <option value='department'>Department</option>
                         <option value='status'>Status</option>
                       </select>
                     </div>
