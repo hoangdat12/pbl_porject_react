@@ -37,7 +37,9 @@ const ESP32CameraComponent = () => {
 
   useEffect(() => {
     // Connect to the WebSocket server
-    const socket = new WebSocket('ws://localhost:3001');
+    const socket = new WebSocket(
+      `ws://${import.meta.env.VITE_APP_WEBSOCKET_URL}`
+    );
 
     // Handle successful connection
     socket.onopen = () => {
