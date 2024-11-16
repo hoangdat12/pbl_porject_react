@@ -1,27 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { FaFilePdf, FaClock } from 'react-icons/fa';
+import { FaFilePdf } from 'react-icons/fa';
 import { FiCalendar, FiSearch } from 'react-icons/fi';
 import EmployeeRollCallSearch from '../components/EmployeeRollCallSearch';
-import { useNavigate } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
 import axiosInstance from '../ultils/axios/axiosInstance';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
+import CheckInHistoryTable from '../components/CheckInHistoryTable';
 
 const EmployeeRollCall = () => {
-  const navigate = useNavigate();
-
   const [date, setDate] = useState(new Date());
   const [histories, setHistories] = useState([]);
+  const [historiesFilter, setHistoriesFilter] = useState([]);
   const [filter, setFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('name');
+  const [sortBy, setSortBy] = useState('id');
 
   const generatePDF = () => {
     // In a real app, this would generate and download a PDF
     console.log('Generating PDF...');
-  };
-
-  const handleNavigate = (userId) => {
-    navigate(`/employee/attendence/${userId}`);
   };
 
   const handleDateChange = async (e) => {
@@ -40,11 +35,25 @@ const EmployeeRollCall = () => {
   };
 
   const handleSortChange = (e) => {
+    console.log('Change 1');
     setSortBy(e.target.value);
   };
 
   const handleFilterChange = (e) => {
-    setFilter(e.target.value);
+    const filterValue = e.target.value;
+    setFilter(filterValue);
+    console.log(filterValue);
+    if (filterValue === 'all') {
+      setHistoriesFilter([]);
+      console.log(histories);
+      return;
+    }
+
+    setHistoriesFilter(
+      histories.filter(
+        (history) => history?.employee_information?.department === filterValue
+      )
+    );
   };
 
   useEffect(() => {
@@ -106,7 +115,7 @@ const EmployeeRollCall = () => {
                         onChange={handleFilterChange}
                         className='border rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500'
                       >
-                        <option value=''>All Departments</option>
+                        <option value='all'>All Departments</option>
                         <option value='Human Resource'>Human Resource</option>
                         <option value='Development Team'>
                           Development Team
@@ -124,69 +133,14 @@ const EmployeeRollCall = () => {
                         onChange={handleSortChange}
                         className='border rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500'
                       >
-                        <option value='name'>Name</option>
+                        <option value='id'>ID</option>
                         <option value='status'>Status</option>
                       </select>
                     </div>
                   </div>
-                  <div className='overflow-x-auto'>
-                    <table className='min-w-full divide-y divide-gray-200'>
-                      <thead className='bg-gray-50'>
-                        <tr>
-                          <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                            Employee ID
-                          </th>
-                          <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                            Name
-                          </th>
-                          <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                            Department
-                          </th>
-                          <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                            Check-In Time
-                          </th>
-                          <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                            Status
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className='bg-white divide-y divide-gray-200'>
-                        {histories?.map((entry) => (
-                          <tr
-                            onClick={() => handleNavigate(entry?.id)}
-                            key={entry?.id}
-                            className=' cursor-pointer'
-                          >
-                            <td className='px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900'>
-                              {entry?.employee_information?.employee_id}
-                            </td>
-                            <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>
-                              {entry?.employee_information?.name}
-                            </td>
-                            <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>
-                              {entry?.employee_information?.department}
-                            </td>
-                            <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>
-                              <span className='flex items-center'>
-                                <FaClock className='ml-4 mr-2 text-gray-400' />
-                                {entry?.created_at
-                                  ? format(
-                                      parseISO(entry?.created_at),
-                                      'HH:mm:ss'
-                                    )
-                                  : null}
-                              </span>
-                            </td>
-                            <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>
-                              <span className='flex items-center'>
-                                {entry?.check_in ? 'Present' : 'Absent'}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <CheckInHistoryTable
+                    histories={filter === 'all' ? histories : historiesFilter}
+                  />
                 </div>
               </div>
             </div>

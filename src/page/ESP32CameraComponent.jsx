@@ -101,8 +101,8 @@ const ESP32CameraComponent = () => {
         <h1 className='text-3xl font-bold mb-6 text-center text-gray-800'>
           ESP32 Web Camera
         </h1>
-        <div className='flex flex-col md:flex-row justify-between items-center gap-6'>
-          <div className='w-full md:w-1/2'>
+        <div className='flex flex-coljustify-between items-center gap-6'>
+          <div className='w-full'>
             <div className='relative aspect-video bg-black rounded-lg overflow-hidden'>
               <img
                 className='w-full h-full object-cover'
@@ -120,7 +120,7 @@ const ESP32CameraComponent = () => {
               Take Picture
             </button>
           </div>
-          <div className='w-full md:w-1/2'>
+          {/* <div className='w-full'>
             {capturedImage ? (
               <div className='bg-white p-4 rounded-lg shadow transition-all duration-300 ease-in-out'>
                 <img
@@ -156,7 +156,7 @@ const ESP32CameraComponent = () => {
               <FaCamera className='mr-2' />
               Check-in
             </button>
-          </div>
+          </div> */}
         </div>
       </div>
     </MainLayout>

@@ -28,7 +28,7 @@ function App() {
             <Route path='/setting' element={<Setting />} />
             <Route path='/employee/attendence' element={<EmployeeRollCall />} />
             <Route
-              path='/employee/attendence/:employeeId'
+              path='/employee/attendence/:employeeId/:date'
               element={<EmployeeAttendanceDetails />}
             />
             <Route path='/' element={<EmployeeHome />} />
@@ -47,7 +47,7 @@ function App() {
             />
             <Route path='/not-authorized' element={<NotAuthorized />} />
             <Route path='/device' element={<StreamingVideoPage />} />
-            <Route path='/device/check-in' element={<ESP32CameraComponent />} />
+            <Route path='/check-in' element={<ESP32CameraComponent />} />
             <Route path='/test' element={<IoTControlDevice />} />
           </Route>
         </Routes>

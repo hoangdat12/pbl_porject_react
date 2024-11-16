@@ -15,7 +15,7 @@ const Navbar = () => {
     { name: 'Employee', href: '/employee/management' },
     { name: 'Attendence', href: '/employee/attendence' },
     { name: 'Setting', href: '/setting' },
-    { name: 'Device', href: '/device' },
+    { name: 'Check In', href: '/check-in' },
   ];
 
   useEffect(() => {

@@ -1,7 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  FaSearch,
-  FaFilter,
   FaSort,
   FaUserCircle,
   FaClock,
@@ -11,74 +9,48 @@ import {
 } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
+import { useParams } from 'react-router-dom';
+import axiosInstance from '../ultils/axios/axiosInstance';
+import { getFullNameUser } from '../ultils';
+import { format, parseISO } from 'date-fns';
+import Loading from '../components/Loading';
 
 const EmployeeAttendanceDetails = () => {
-  const [employees, setEmployees] = useState([
-    {
-      id: 1,
-      name: 'John Doe',
-      department: 'IT',
-      shift: 'Day',
-      clockIn: '09:00 AM',
-      clockOut: '05:30 PM',
-      status: 'out',
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      department: 'HR',
-      shift: 'Day',
-      clockIn: '08:45 AM',
-      clockOut: null,
-      status: 'in',
-    },
-    {
-      id: 3,
-      name: 'Mike Johnson',
-      department: 'Sales',
-      shift: 'Night',
-      clockIn: '08:00 PM',
-      clockOut: null,
-      status: 'in',
-    },
-    {
-      id: 4,
-      name: 'Emily Brown',
-      department: 'Marketing',
-      shift: 'Day',
-      clockIn: '09:15 AM',
-      clockOut: '06:00 PM',
-      status: 'out',
-    },
-  ]);
+  const { employeeId, date } = useParams();
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterDepartment, setFilterDepartment] = useState('');
-  const [filterShift, setFilterShift] = useState('');
-  const [sortBy, setSortBy] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingOverlay, setIsLoadingOverlay] = useState(false);
 
-  const handleSort = (criteria) => {
-    setSortBy(criteria);
-    const sortedEmployees = [...employees].sort((a, b) => {
-      if (a[criteria] < b[criteria]) return -1;
-      if (a[criteria] > b[criteria]) return 1;
-      return 0;
-    });
-    setEmployees(sortedEmployees);
-  };
+  const [userInformation, setUserInformation] = useState(null);
+  const [checkInDetails, setCheckInDetails] = useState([]);
 
   const handleExportPDF = () => {
     // Implement PDF export functionality
     console.log('Exporting PDF...');
   };
 
-  const filteredEmployees = employees.filter((employee) => {
-    return (
-      employee.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (filterDepartment === '' || employee.department === filterDepartment) &&
-      (filterShift === '' || employee.shift === filterShift)
-    );
-  });
+  useEffect(() => {
+    const getUserInformation = async () => {
+      const response = await axiosInstance.get(`/account/detail/${employeeId}`);
+      if (response.status === 200) {
+        setUserInformation(response?.data?.data);
+      }
+    };
+
+    const getCheckInDetails = async () => {
+      setIsLoading(true);
+      const response = await axiosInstance.get(
+        `/history/detail?userId=${employeeId}&date=${date}`
+      );
+      setIsLoading(false);
+      if (response.status === 200) {
+        setCheckInDetails(response?.data?.data);
+      }
+    };
+
+    getUserInformation();
+    getCheckInDetails();
+  }, [employeeId]);
 
   return (
     <MainLayout>
@@ -104,109 +76,127 @@ const EmployeeAttendanceDetails = () => {
               </button>
             </nav>
           </div>
-          <p className='text-gray-600 mt-2'>
-            Current Date: {new Date().toLocaleDateString()}
+          <p className='font-medium text-lg text-gray-600 mt-2'>
+            Date Time: {date.replaceAll('-', '/')}
           </p>
         </header>
 
-        <div className='bg-white rounded-lg shadow-md overflow-hidden'>
-          <img
-            src='https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80'
-            className='w-full h-48 object-cover'
-          />
-          <div className='p-4'>
-            <h2 className='text-xl font-semibold mb-2'>John Doe</h2>
-            <p className='text-gray-600 mb-2'>Software Engineer</p>
-            <p className='text-gray-500 mb-4'>IT</p>
+        {isLoading ? (
+          <div className='mt-10 flex items-center justify-center'>
+            <Loading isLoading={isLoading} />
           </div>
-        </div>
+        ) : (
+          <>
+            <div className='bg-white rounded-lg shadow-md overflow-hidden'>
+              <img
+                src={userInformation?.image}
+                className='w-full h-96 object-cover'
+              />
+              <div className='p-4'>
+                <h2 className='text-xl font-semibold mb-2'>
+                  {getFullNameUser(userInformation)}
+                </h2>
+                <p className='text-gray-600 mb-2'>
+                  {userInformation?.position}
+                </p>
+                <p className='text-gray-500 mb-4'>
+                  {userInformation?.deparment}
+                </p>
+              </div>
+            </div>
 
-        <div className='overflow-x-auto'>
-          <table className='w-full table-auto'>
-            <thead>
-              <tr className='bg-gray-200 text-gray-600 uppercase text-sm leading-normal'>
-                <th
-                  className='py-3 px-6 text-left cursor-pointer'
-                  onClick={() => handleSort('name')}
-                >
-                  <div className='flex items-center'>
-                    Name
-                    <FaSort className='ml-1' />
-                  </div>
-                </th>
-                <th className='py-3 px-6 text-left'>Department</th>
-                <th className='py-3 px-6 text-left'>Shift</th>
-                <th
-                  className='py-3 px-6 text-left cursor-pointer'
-                  onClick={() => handleSort('clockIn')}
-                >
-                  <div className='flex items-center'>
-                    Clock In
-                    <FaSort className='ml-1' />
-                  </div>
-                </th>
-                <th
-                  className='py-3 px-6 text-left cursor-pointer'
-                  onClick={() => handleSort('clockOut')}
-                >
-                  <div className='flex items-center'>
-                    Clock Out
-                    <FaSort className='ml-1' />
-                  </div>
-                </th>
-                <th className='py-3 px-6 text-left'>Status</th>
-              </tr>
-            </thead>
-            <tbody className='text-gray-600 text-sm font-light'>
-              {filteredEmployees.map((employee) => (
-                <tr
-                  key={employee.id}
-                  className={`border-b border-gray-200 hover:bg-gray-100 ${
-                    employee.status === 'in' ? 'bg-green-100' : 'bg-red-100'
-                  }`}
-                >
-                  <td className='py-3 px-6 text-left whitespace-nowrap'>
-                    <div className='flex items-center'>
-                      <FaUserCircle className='mr-2' />
-                      {employee.name}
-                    </div>
-                  </td>
-                  <td className='py-3 px-6 text-left'>{employee.department}</td>
-                  <td className='py-3 px-6 text-left'>{employee.shift}</td>
-                  <td className='py-3 px-6 text-left'>
-                    <div className='flex items-center'>
-                      <FaClock className='mr-2' />
-                      {employee.clockIn}
-                    </div>
-                  </td>
-                  <td className='py-3 px-6 text-left'>
-                    {employee.clockOut ? (
+            <div className='overflow-x-auto'>
+              <table className='w-full table-auto'>
+                <thead>
+                  <tr className='bg-gray-200 text-gray-600 uppercase text-sm leading-normal'>
+                    <th
+                      className='py-3 px-6 text-left cursor-pointer'
+                      onClick={() => handleSort('name')}
+                    >
                       <div className='flex items-center'>
-                        <FaClock className='mr-2' />
-                        {employee.clockOut}
+                        Employee ID
+                        <FaSort className='ml-1' />
                       </div>
-                    ) : (
-                      'Not clocked out'
-                    )}
-                  </td>
-                  <td className='py-3 px-6 text-left'>
-                    {employee.status === 'in' ? (
-                      <span className='bg-green-200 text-green-600 py-1 px-3 rounded-full text-xs'>
-                        <FaDoorOpen className='inline mr-1' />
-                        In Office
-                      </span>
-                    ) : (
-                      <span className='bg-red-200 text-red-600 py-1 px-3 rounded-full text-xs'>
-                        <FaDoorClosed className='inline mr-1' />
-                        Left
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                    </th>
+                    <th className='py-3 px-6 text-left'>Employee Name</th>
+                    <th className='py-3 px-6 text-left'>Department</th>
+                    <th
+                      className='py-3 px-6 text-left cursor-pointer'
+                      onClick={() => handleSort('clockIn')}
+                    >
+                      <div className='flex items-center'>
+                        Check-In Time
+                        <FaSort className='ml-1' />
+                      </div>
+                    </th>
+                    <th
+                      className='py-3 px-6 text-left cursor-pointer'
+                      onClick={() => handleSort('clockOut')}
+                    >
+                      <div className='flex items-center'>
+                        Method
+                        <FaSort className='ml-1' />
+                      </div>
+                    </th>
+                    <th className='py-3 px-6 text-left'>Status</th>
+                  </tr>
+                </thead>
+                <tbody className='text-gray-600 text-sm font-light'>
+                  {checkInDetails?.map((checkInDeatil) => (
+                    <tr
+                      key={checkInDeatil?.created_at}
+                      className={`border-b border-gray-200 hover:bg-gray-100 ${
+                        checkInDeatil?.status === 'Check In'
+                          ? 'bg-green-100'
+                          : 'bg-red-100'
+                      }`}
+                    >
+                      <td className='py-3 px-6 text-left'>
+                        {checkInDeatil?.employee_information?.employee_id}
+                      </td>
+                      <td className='py-3 px-6 text-left whitespace-nowrap'>
+                        <div className='flex items-center'>
+                          <FaUserCircle className='mr-2' />
+                          {checkInDeatil?.employee_information?.name}
+                        </div>
+                      </td>
+                      <td className='py-3 px-6 text-left'>
+                        {checkInDeatil?.employee_information?.department}
+                      </td>
+                      <td className='py-3 px-6 text-left'>
+                        <div className='flex items-center'>
+                          <FaClock className='mr-2' />
+                          {checkInDeatil?.created_at
+                            ? format(
+                                parseISO(checkInDeatil?.created_at),
+                                'HH:mm:ss'
+                              )
+                            : null}
+                        </div>
+                      </td>
+                      <td className='py-3 px-6 text-left'>
+                        {checkInDeatil?.authenticate_with?.toUpperCase()}
+                      </td>
+                      <td className='py-3 px-6 text-left'>
+                        {checkInDeatil.status === 'Check In' ? (
+                          <span className='bg-green-200 text-green-600 py-1 px-3 rounded-full text-xs'>
+                            <FaDoorOpen className='inline mr-1' />
+                            In Office
+                          </span>
+                        ) : (
+                          <span className='bg-red-200 text-red-600 py-1 px-3 rounded-full text-xs'>
+                            <FaDoorClosed className='inline mr-1' />
+                            Left
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
     </MainLayout>
   );
