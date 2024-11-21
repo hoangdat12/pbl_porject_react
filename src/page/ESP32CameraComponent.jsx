@@ -3,10 +3,13 @@ import { FaCamera } from 'react-icons/fa';
 import MainLayout from '../components/MainLayout';
 import axiosInstance from '../ultils/axios/axiosInstance';
 import { getUserLocalStorageItem } from '../ultils';
+import ToastNotification from '../components/ToastNotification';
 
 const ESP32CameraComponent = () => {
   const user = getUserLocalStorageItem();
   const [capturedImage, setCapturedImage] = useState(null);
+  const [showMessageSucces, setShowMessageSuccess] = useState('');
+  const [message, setMessage] = useState('');
   const videoRef = useRef(null);
   const imageUrlRef = useRef(null); // To keep track of the current image URL
 
@@ -61,6 +64,17 @@ const ESP32CameraComponent = () => {
     // Handle incoming messages
     socket.onmessage = (event) => {
       // Revoke the previous image URL
+      if (typeof event.data === 'string') {
+        // Xử lý thông điệp văn bản
+        const data = JSON.parse(event.data);
+        if (data?.messageType === 'recognitionSuccess') {
+          setIsRecognitionSuccess('success');
+          setMessage('Recognition Success');
+        } else if (data?.messageType === 'recognitionFailure') {
+          setIsRecognitionSuccess('error');
+          setMessage('Recognition Failure');
+        }
+      }
       if (imageUrlRef.current) {
         URL.revokeObjectURL(imageUrlRef.current);
       }
@@ -113,51 +127,19 @@ const ESP32CameraComponent = () => {
             </div>
             <button
               onClick={handleCapture}
-              className='mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50'
+              className={`mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
               aria-label='Take Picture'
             >
               <FaCamera className='mr-2' />
               Take Picture
             </button>
           </div>
-          {/* <div className='w-full'>
-            {capturedImage ? (
-              <div className='bg-white p-4 rounded-lg shadow transition-all duration-300 ease-in-out'>
-                <img
-                  src={`data:image/jpeg;base64,${capturedImage}`}
-                  alt='Captured image'
-                  className='w-full h-auto rounded-lg'
-                />
-                <div className='mt-4 flex justify-between'>
-                  <button
-                    onClick={handleDownload}
-                    className='bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50'
-                  >
-                    Download
-                  </button>
-                  <button
-                    onClick={() => setCapturedImage(null)}
-                    className='bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50'
-                  >
-                    Discard
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className='bg-gray-200 aspect-video rounded-lg flex items-center justify-center text-gray-500 font-semibold'>
-                No image captured
-              </div>
-            )}
-            <button
-              onClick={handleCheckIn}
-              className='mt-4 w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50'
-              aria-label='Take Picture'
-            >
-              <FaCamera className='mr-2' />
-              Check-in
-            </button>
-          </div> */}
         </div>
+        <ToastNotification
+          type={showMessageSucces}
+          message={message}
+          setVisible={setShowMessageSuccess}
+        />
       </div>
     </MainLayout>
   );
