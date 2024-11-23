@@ -24,9 +24,34 @@ const EmployeeAttendanceDetails = () => {
   const [userInformation, setUserInformation] = useState(null);
   const [checkInDetails, setCheckInDetails] = useState([]);
 
-  const handleExportPDF = () => {
-    // Implement PDF export functionality
-    console.log('Exporting PDF...');
+  const handleExportPDF = async () => {
+    try {
+      const response = await axiosInstance.get(
+        `/history/extract/detail?userId=${employeeId}&date=${date}`,
+        {
+          responseType: 'blob', // Ensures the response is handled as a file (PDF)
+        }
+      );
+
+      // Create a URL for the PDF file
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+
+      // Suggest a filename for the exported PDF
+      link.setAttribute('download', 'employee_report.xlsx');
+
+      // Append the link to the body and trigger the download
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup: Remove the link after the download starts
+      document.body.removeChild(link);
+
+      console.log('PDF export successful.');
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+    }
   };
 
   useEffect(() => {

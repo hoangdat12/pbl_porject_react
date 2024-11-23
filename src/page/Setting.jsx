@@ -22,7 +22,7 @@ const Setting = () => {
 
   return (
     <MainLayout>
-      <div className='min-h-screen bg-gray-100'>
+      <div className='min-h-screen bg-gray-100 md:px-10 lg:px-20 xl:px-32 xl:py-4'>
         <div className='py-5 items-center justify-center px-4'>
           <div className='space-y-6'>
             <header className='bg-white shadow-md rounded-lg p-6'>

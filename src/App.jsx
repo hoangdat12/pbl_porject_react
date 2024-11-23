@@ -11,7 +11,6 @@ import ForgotPassword from './page/ForgotPassword';
 import NotAuthorized from './page/NotAuthorized';
 import Login from './page/Login';
 import Setting from './page/Setting';
-import IoTControlDevice from './page/Test';
 import ESP32CameraComponent from './page/ESP32CameraComponent';
 import Register from './page/Register';
 import ProtectedRoutes from './ultils/ProtectedRoute';
@@ -48,7 +47,6 @@ function App() {
             <Route path='/not-authorized' element={<NotAuthorized />} />
             <Route path='/device' element={<StreamingVideoPage />} />
             <Route path='/check-in' element={<ESP32CameraComponent />} />
-            <Route path='/test' element={<IoTControlDevice />} />
           </Route>
         </Routes>
       </Router>

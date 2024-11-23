@@ -15,7 +15,7 @@ const Navbar = () => {
     { name: 'Employee', href: '/employee/management' },
     { name: 'Attendence', href: '/employee/attendence' },
     { name: 'Setting', href: '/setting' },
-    { name: 'Check In', href: '/check-in' },
+    { name: 'Check In', href: '/device' },
   ];
 
   useEffect(() => {
@@ -73,7 +73,7 @@ const Navbar = () => {
               className='h-8 w-auto mr-2'
             />
             {!isSearchOpen && (
-              <span className='font-bold text-xl'>Your Brand</span>
+              <span className='font-bold text-xl'>PBL3 Project</span>
             )}
           </Link>
         </div>

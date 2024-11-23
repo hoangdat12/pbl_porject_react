@@ -19,9 +19,11 @@ const StreamingVideoPage = () => {
   const [error, setError] = useState(null);
 
   const toggleDoor = async () => {
+    console.log('click');
     try {
       // Simulating API call to toggle door
       const status = doorStatus === 'open' ? 'closed' : 'open';
+      if (status === 'closed') return;
       if (status === 'closed') {
         // Close the door
         setDoorStatus(status);
@@ -43,6 +45,17 @@ const StreamingVideoPage = () => {
     }
   };
 
+  useEffect(() => {
+    let timeoutId;
+    if (doorStatus === 'open') {
+      timeoutId = setTimeout(() => {
+        setDoorStatus('closed');
+      }, 5000); // 5 giây
+    }
+    // Dọn dẹp timeout nếu doorStatus thay đổi trước khi timeout kết thúc
+    return () => clearTimeout(timeoutId);
+  }, [doorStatus]);
+
   const toggleLight = () => {
     try {
       // Simulating API call to toggle light
@@ -56,6 +69,18 @@ const StreamingVideoPage = () => {
     const brightness = parseInt(e.target.value);
     setLightBrightness(brightness);
     // Simulating API call to adjust brightness
+  };
+
+  const handleCheckIn = async () => {
+    const response = await axiosInstance.post(
+      'device/control/camera/take-picture',
+      {
+        clientId: user?.id,
+      }
+    );
+    console.log(response);
+    if (response.status === 200) {
+    }
   };
 
   useEffect(() => {
@@ -83,18 +108,34 @@ const StreamingVideoPage = () => {
 
     // Handle incoming messages
     socket.onmessage = (event) => {
-      // Revoke the previous image URL
-      if (imageUrlRef.current) {
-        URL.revokeObjectURL(imageUrlRef.current);
-      }
+      if (typeof event.data === 'string') {
+        // Xử lý thông điệp văn bản
+        const data = JSON.parse(event.data);
+        if (data?.messageType === 'recognitionSuccess') {
+          setIsRecognitionSuccess('success');
+          setMessage('Recognition Success');
+        } else if (data?.messageType === 'recognitionFailure') {
+          setIsRecognitionSuccess('error');
+          setMessage('Recognition Failure');
+        }
+        return;
+      } else {
+        if (imageUrlRef.current) {
+          URL.revokeObjectURL(imageUrlRef.current);
+        }
+        // Revoke the previous image URL
+        if (imageUrlRef.current) {
+          URL.revokeObjectURL(imageUrlRef.current);
+        }
 
-      // Create a new image URL
-      const imageBlob = new Blob([event.data], { type: 'image/jpeg' });
-      const newImageUrl = URL.createObjectURL(imageBlob);
-      imageUrlRef.current = newImageUrl; // Update the ref with the new URL
+        // Create a new image URL
+        const imageBlob = new Blob([event.data], { type: 'image/jpeg' });
+        const newImageUrl = URL.createObjectURL(imageBlob);
+        imageUrlRef.current = newImageUrl; // Update the ref with the new URL
 
-      if (videoRef.current) {
-        videoRef.current.src = newImageUrl;
+        if (videoRef.current) {
+          videoRef.current.src = newImageUrl;
+        }
       }
     };
 
@@ -146,7 +187,10 @@ const StreamingVideoPage = () => {
               </div>
 
               <div className='mt-4 flex space-x-4'>
-                <button className='flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition'>
+                <button
+                  onClick={handleCheckIn}
+                  className='flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition'
+                >
                   <MdPanTool className='w-5 h-5' />
                   <span>Check-in</span>
                 </button>

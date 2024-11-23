@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { FaSearch, FaFileExport, FaFilePdf } from 'react-icons/fa';
+import { IoMdAddCircle } from 'react-icons/io';
 import MainLayout from '../components/MainLayout';
 import axiosInstance from '../ultils/axios/axiosInstance';
 import Loading from '../components/Loading';
 import { getUserLocalStorageItem } from '../ultils';
 import useDebounce from '../hooks/useDebounce';
 import EmployeeList from '../components/EmployeeList';
+import { useNavigate } from 'react-router-dom';
 
 const EmployeeManagementDashboard = () => {
+  const navigate = useNavigate();
+
   const user = getUserLocalStorageItem();
   const [employees, setEmployees] = useState([]);
   const [employeeFilter, setEmployeeFilter] = useState([]);
@@ -36,14 +40,38 @@ const EmployeeManagementDashboard = () => {
     setIsLoading(false);
   };
 
-  const handleExportPDF = () => {
-    // Implement PDF export functionality
-    console.log('Exporting PDF...');
+  const handleExportPDF = async () => {
+    try {
+      const response = await axiosInstance.get(
+        `device/export/employee/BC5BPV21X0`,
+        {
+          responseType: 'blob', // Ensures the response is handled as a file (PDF)
+        }
+      );
+
+      // Create a URL for the PDF file
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+
+      // Suggest a filename for the exported PDF
+      link.setAttribute('download', 'employee_report.xlsx');
+
+      // Append the link to the body and trigger the download
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup: Remove the link after the download starts
+      document.body.removeChild(link);
+
+      console.log('PDF export successful.');
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+    }
   };
 
-  const handleExportList = () => {
-    // Implement list export functionality
-    console.log('Exporting employee list...');
+  const handleAddNewEmployee = () => {
+    navigate('/employee/register');
   };
 
   useEffect(() => {
@@ -110,14 +138,14 @@ const EmployeeManagementDashboard = () => {
               className='flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-300'
             >
               <FaFilePdf className='mr-2' />
-              Export PDF
+              Export File
             </button>
             <button
-              onClick={handleExportList}
+              onClick={handleAddNewEmployee}
               className='flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300'
             >
-              <FaFileExport className='mr-2' />
-              Export List
+              <IoMdAddCircle className='mr-2' />
+              Add New
             </button>
           </div>
         </div>

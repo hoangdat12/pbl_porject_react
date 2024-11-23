@@ -14,9 +14,34 @@ const EmployeeRollCall = () => {
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState('id');
 
-  const generatePDF = () => {
-    // In a real app, this would generate and download a PDF
-    console.log('Generating PDF...');
+  const handleExtractFile = async () => {
+    try {
+      const response = await axiosInstance.get(
+        `/history/extract?date=${format(date, 'yyyy-MM-dd')}`,
+        {
+          responseType: 'blob', // Ensures the response is handled as a file (PDF)
+        }
+      );
+
+      // Create a URL for the PDF file
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+
+      // Suggest a filename for the exported PDF
+      link.setAttribute('download', 'employee_report.xlsx');
+
+      // Append the link to the body and trigger the download
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup: Remove the link after the download starts
+      document.body.removeChild(link);
+
+      console.log('PDF export successful.');
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+    }
   };
 
   const handleDateChange = async (e) => {
@@ -27,15 +52,12 @@ const EmployeeRollCall = () => {
       `/history/date?date=${format(newDate, 'yyyy-MM-dd')}`
     );
 
-    console.log(date, response);
-
     if (response.status === 200) {
       setHistories(response.data.data);
     }
   };
 
   const handleSortChange = (e) => {
-    console.log('Change 1');
     setSortBy(e.target.value);
   };
 
@@ -148,10 +170,10 @@ const EmployeeRollCall = () => {
 
           <div className='fixed bottom-0 left-0 right-0 border-t p-4 flex justify-end bg-white'>
             <button
-              onClick={generatePDF}
+              onClick={handleExtractFile}
               className='bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 focus:outline-none flex items-center'
             >
-              <FaFilePdf className='mr-2' /> Extract PDF
+              <FaFilePdf className='mr-2' /> Extract File
             </button>
           </div>
         </div>
