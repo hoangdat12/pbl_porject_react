@@ -50,7 +50,7 @@ const StreamingVideoPage = () => {
     if (doorStatus === 'open') {
       timeoutId = setTimeout(() => {
         setDoorStatus('closed');
-      }, 5000); // 5 giây
+      }, 7500); // 5 giây
     }
     // Dọn dẹp timeout nếu doorStatus thay đổi trước khi timeout kết thúc
     return () => clearTimeout(timeoutId);
